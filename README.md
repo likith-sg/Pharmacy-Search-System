@@ -106,6 +106,7 @@ The API is now running and available at [http://127.0.0.1:8000](http://127.0.0.1
 ```bash
 python benchmark.py
 ```
+The final submission file, containing the results of this evaluation, can also be viewed directly here: [`submission.json`](https://github.com/likith-sg/Pharmacy-Search-System/blob/main/submission.json).
 
 * **Generate Submission File**: With the server running, open a second terminal, activate the virtual environment, and run the `generate_submission.py` script to create the final `submission.json` file.
 
