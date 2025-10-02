@@ -1,48 +1,57 @@
 # Pharmacy Search System
 
-This project is a high-performance search system for a medicine dataset, implemented using PostgreSQL and FastAPI. It supports prefix, substring, full-text, and fussy (typo-tolerant) search functionalities.
+This project is a high-performance search system for a medicine dataset, implemented using PostgreSQL for the database and FastAPI for the REST API. It fulfills the hackathon requirements by supporting efficient prefix, substring, full-text, and fussy (typo-tolerant) searches.
 
 ## 1. Technical Approach
 
-The core of this system is a PostgreSQL database optimized for various types of text searches.
+The core of this project is an optimized PostgreSQL database designed for complex text queries. The primary goal was to ensure high performance and low latency across all required search types.
 
-* **Indexing**: A GIN index with the `pg_trgm` extension is used on the `name` column to efficiently handle prefix, substring, and fussy searches. For full-text search, a dedicated `tsvector` column with its own GIN index handles language-aware queries.
-* **API**: The REST API is built with FastAPI for high performance and includes auto-generated interactive documentation.
-* **Configuration**: Database credentials are managed securely using environment variables loaded from a `.env` file.
+* **Database**: **PostgreSQL** was selected due to its advanced indexing capabilities and support for powerful extensions like `pg_trgm`.
+
+* **Indexing Strategy**: A multi-index approach was used to ensure each search type was handled by a specialized, high-performance index.
+
+  * A **GIN (Generalized Inverted Index)** with the **`pg_trgm`** extension was created on the `name` column. This single index is highly efficient and accelerates three distinct search types: prefix (`ILIKE 'query%'`), substring (`ILIKE '%query%'`), and fussy search (using the `%%` trigram similarity operator).
+  * For full-text search, a dedicated **`tsvector`** column (`search_vector`) was pre-populated with processed text from the `name` and `short_composition` fields. This column has its own GIN index, which enables fast, language-aware searching that understands stemming and relevance.
+
+* **API**: The REST API was built with **FastAPI** for its asynchronous performance, data validation with Pydantic, and automatic generation of interactive API documentation.
+
+* **Configuration**: To maintain security and flexibility, database credentials are not hardcoded. They are managed via a `.env` file, which is loaded at runtime and excluded from version control via `.gitignore`.
 
 ## 2. Benchmark Report
 
 ### Methodology
 
-The benchmarks were run locally. API latency was measured using a Python script. PostgreSQL's `EXPLAIN ANALYZE` was used to confirm index usage. On the provided dataset, the query planner correctly utilized the GIN indexes for optimal performance after the table statistics were updated with the `ANALYZE` command.
+Performance was benchmarked on a local machine. The `benchmark.py` script was used to measure API **latency** (single-request response time) and **throughput** (concurrent requests per second). PostgreSQL's `EXPLAIN ANALYZE` command was used to verify that the correct indexes were being utilized for each query, confirming that inefficient sequential scans were avoided after updating table statistics.
 
 ### Performance Results
 
-| Search Type | Query    | Index Used              |
-| :---------- | :------- | :---------------------- |
-| Prefix      | `boc`    | `idx_gin_name_trgm`     |
-| Substring   | `Leekuf` | `idx_gin_name_trgm`     |
-| Fussy       | `daxid`  | `idx_gin_name_trgm`     |
-| Full-Text   | `cancer` | `idx_gin_search_vector` |
+| Search Type | Query        | Index Used              | Latency (ms) | Throughput (req/s) |
+| :---------- | :----------- | :---------------------- | :----------- | :----------------- |
+| Prefix      | `Ava`        | `idx_gin_name_trgm`     | 87.72        | 23.52              |
+| Substring   | `Injection`  | `idx_gin_name_trgm`     | 237.17       | 10.70              |
+| Fussy       | `Avastn`     | `idx_gin_name_trgm`     | 41.53        | 23.64              |
+| Full-Text   | `antibiotic` | `idx_gin_search_vector` | 41.36        | 24.80              |
 
 ## 3. Setup and Run Instructions
+
+To set up and run this project, please follow these steps.
 
 ### Prerequisites
 
 * Python 3.8+
-* PostgreSQL
+* PostgreSQL Server
 * Git
 
-### Clone the Repository
+### Step 1: Clone the Repository
 
 ```bash
 git clone https://github.com/likith-sg/Pharmacy-Search-System.git
 cd Pharmacy-Search-System
 ```
 
-### Set Up the Python Environment
+### Step 2: Set Up the Python Environment
 
-Create and activate a virtual environment, then install dependencies.
+Create and activate a virtual environment, then install the required dependencies.
 
 ```bash
 # Create the virtual environment
@@ -54,40 +63,52 @@ python -m venv venv
 # Activate on macOS/Linux
 source venv/bin/activate
 
-# Install required packages
+# Install required packages from the requirements file
 pip install -r requirements.txt
 ```
 
-### Configure the Database
+### Step 3: Configure the Database
 
 Ensure your PostgreSQL server is running.
 
-* Create a new database (e.g., `pharmacy_db`).
-* Create a `.env` file and fill in your database credentials.
-* Connect to your database and run the contents of `schema.sql` to create the tables and indexes. Remember to run:
+* Create a new, empty database (e.g., `pharmacy_db`).
+* In the project root, create a file named `.env` and populate it with your database credentials.
+* Connect to your database and execute the `schema.sql` script to create the tables and indexes. You can do this by running the command below in your terminal, or by pasting the contents of `schema.sql` into a GUI client like pgAdmin.
 
-```sql
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
+```bash
+# Replace [user] and [database] with your credentials
+psql -U [user] -d [database] -f schema.sql
 ```
 
-first.
+### Step 4: Import the Dataset
 
-### Import Data
-
-Run the import script to populate the database. This is a one-time step.
+Run the provided script to populate the database with the medicine data. This is a one-time setup step.
 
 ```bash
 python import_data.py
 ```
 
-### Run the API Server
+### Step 5: Run the API Server
 
-Start the FastAPI application using Uvicorn.
+Start the FastAPI application using Uvicorn. The server will automatically reload on code changes.
 
 ```bash
 uvicorn main:app --reload
 ```
 
-The API will be available at [http://127.0.0.1:8000](http://127.0.0.1:8000).
+The API is now running and available at [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
-The interactive documentation is at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
+### Step 6: Verify and Evaluate
+
+* **Interactive Documentation**: You can explore and test all API endpoints interactively by navigating to [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) in your web browser.
+* **Run Performance Benchmark (Optional)**: To reproduce the performance metrics, run the `benchmark.py` script. The results will be printed to the terminal and also saved to a timestamped file in the `logs/` directory.
+
+```bash
+python benchmark.py
+```
+
+* **Generate Submission File**: With the server running, open a second terminal, activate the virtual environment, and run the `generate_submission.py` script to create the final `submission.json` file.
+
+```bash
+python generate_submission.py
+```

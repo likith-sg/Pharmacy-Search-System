@@ -1,0 +1,18 @@
+Make sure your FastAPI server is running before executing this script.
+Throughput test will run 100 requests per endpoint with 10 concurrent requests.
+
+--- 1. Latency Test (Single Request Performance) ---
+  - Endpoint: /search/prefix     | Query: 'Ava         ' | Latency: 87.72 ms
+  - Endpoint: /search/substring  | Query: 'Injection   ' | Latency: 237.17 ms
+  - Endpoint: /search/fulltext   | Query: 'antibiotic  ' | Latency: 41.36 ms
+  - Endpoint: /search/fussy      | Query: 'Avastn      ' | Latency: 41.53 ms
+
+--- 2. Throughput Test (Concurrent Performance) ---
+  - Testing Endpoint: /search/prefix with query 'Ava'...
+    -> Completed 100/100 requests in 4.25s | Throughput: 23.52 req/s
+  - Testing Endpoint: /search/substring with query 'Injection'...
+    -> Completed 100/100 requests in 9.35s | Throughput: 10.70 req/s
+  - Testing Endpoint: /search/fulltext with query 'antibiotic'...
+    -> Completed 100/100 requests in 4.03s | Throughput: 24.80 req/s
+  - Testing Endpoint: /search/fussy with query 'Avastn'...
+    -> Completed 100/100 requests in 4.23s | Throughput: 23.64 req/s
