@@ -1,6 +1,6 @@
 # Pharmacy Search System
 
-This project is a high-performance search system for a medicine dataset, implemented using PostgreSQL for the database and FastAPI for the REST API. It fulfills the hackathon requirements by supporting efficient prefix, substring, full-text, and fussy (typo-tolerant) searches.
+This project is a high-performance search system for a medicine dataset, implemented using PostgreSQL and FastAPI. It supports prefix, substring, full-text, and fussy (typo-tolerant) search functionalities.
 
 ## 1. Technical Approach
 
