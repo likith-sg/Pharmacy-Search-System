@@ -36,8 +36,8 @@ The benchmarks were run locally. API latency was measured using a Python script.
 ### Clone the Repository
 
 ```bash
-git clone [Your GitHub Repository URL]
-cd [Your Project Folder Name]
+git clone https://github.com/likith-sg/Pharmacy-Search-System.git
+cd Pharmacy-Search-System
 ```
 
 ### Set Up the Python Environment
